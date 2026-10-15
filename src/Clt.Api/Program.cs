@@ -8,6 +8,8 @@ using Clt.Api.Application.Users.Commands;
 using Clt.Api.Application.Users.Queries;
 using Clt.Api.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Clt.Api.Application.Addresses.Commands;
+using Clt.Api.Application.Addresses.Queries;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPersistence(builder.Configuration, builder.Environment.ContentRootPath);
@@ -17,6 +19,10 @@ builder.Services.AddScoped<DeleteUserHandler>();
 builder.Services.AddScoped<GetUserHandler>();
 builder.Services.AddScoped<ListUsersHandler>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<CreateAddressHandler>();
+builder.Services.AddScoped<UpdateAddressHandler>();
+builder.Services.AddScoped<DeleteAddressHandler>();
+builder.Services.AddScoped<ListAddressesHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -48,6 +54,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseMiddleware<ApiKeyMiddleware>();
 app.MapUserEndpoints();
+app.MapAddressEndpoints();
 app.Run();
 
 public partial class Program;
