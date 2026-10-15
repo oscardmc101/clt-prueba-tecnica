@@ -27,7 +27,33 @@ public class SecurityTests : IClassFixture<ApiFactory>
         var document = await _client.GetStringAsync("/swagger/v1/swagger.json");
         Assert.Contains("X-API-KEY", document);
         Assert.Contains("apiKey", document);
+        Assert.DoesNotContain("passwordHash", document, StringComparison.OrdinalIgnoreCase);
         using var response = await _client.GetAsync("/swagger/index.html");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Every_functional_endpoint_requires_api_key_before_processing_body()
+    {
+        var operations = new (HttpMethod Method, string Path)[]
+        {
+            (HttpMethod.Get, "/users"), (HttpMethod.Post, "/users"),
+            (HttpMethod.Get, "/users/1"), (HttpMethod.Put, "/users/1"), (HttpMethod.Delete, "/users/1"),
+            (HttpMethod.Post, "/users/bulk"),
+            (HttpMethod.Post, "/users/1/addresses"), (HttpMethod.Get, "/users/1/addresses"),
+            (HttpMethod.Put, "/addresses/1"), (HttpMethod.Delete, "/addresses/1"),
+            (HttpMethod.Get, "/currencies"), (HttpMethod.Post, "/currencies"),
+            (HttpMethod.Post, "/currency/convert")
+        };
+        foreach (var (method, path) in operations)
+        {
+            foreach (var key in new string?[] { null, "wrong" })
+            {
+                using var request = new HttpRequestMessage(method, path);
+                if (key is not null) request.Headers.Add("X-API-KEY", key);
+                using var response = await _client.SendAsync(request);
+                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            }
+        }
     }
 }
