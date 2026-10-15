@@ -10,6 +10,9 @@ using Clt.Api.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Clt.Api.Application.Addresses.Commands;
 using Clt.Api.Application.Addresses.Queries;
+using Clt.Api.Application.Currencies.Commands;
+using Clt.Api.Application.Currencies.Queries;
+using Clt.Api.Application.CurrencyConversion;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPersistence(builder.Configuration, builder.Environment.ContentRootPath);
@@ -23,6 +26,9 @@ builder.Services.AddScoped<CreateAddressHandler>();
 builder.Services.AddScoped<UpdateAddressHandler>();
 builder.Services.AddScoped<DeleteAddressHandler>();
 builder.Services.AddScoped<ListAddressesHandler>();
+builder.Services.AddScoped<CreateCurrencyHandler>();
+builder.Services.AddScoped<ListCurrenciesHandler>();
+builder.Services.AddScoped<ConvertCurrencyHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -55,6 +61,7 @@ app.UseSwaggerUI();
 app.UseMiddleware<ApiKeyMiddleware>();
 app.MapUserEndpoints();
 app.MapAddressEndpoints();
+app.MapCurrencyEndpoints();
 app.Run();
 
 public partial class Program;
