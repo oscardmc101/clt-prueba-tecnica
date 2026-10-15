@@ -2,8 +2,10 @@ using Clt.Api.Api.Errors;
 using Clt.Api.Api.Middleware;
 using FluentValidation;
 using Microsoft.OpenApi;
+using Clt.Api.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddPersistence(builder.Configuration, builder.Environment.ContentRootPath);
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -25,6 +27,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+await app.Services.InitializeDatabaseAsync();
 app.UseExceptionHandler();
 app.UseStatusCodePages(async context =>
     await Results.Problem(statusCode: context.HttpContext.Response.StatusCode)

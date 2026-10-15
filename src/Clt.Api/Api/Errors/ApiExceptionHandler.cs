@@ -1,5 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clt.Api.Api.Errors;
 
@@ -18,6 +20,11 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
         else if (exception is ApiException api)
         {
             result = Results.Problem(statusCode: api.StatusCode, detail: api.Message);
+        }
+        else if (exception is SqliteException { SqliteErrorCode: 5 or 6 } ||
+                 exception is DbUpdateException { InnerException: SqliteException { SqliteErrorCode: 5 or 6 } })
+        {
+            result = Results.Problem(statusCode: 503, detail: "The database is busy. Please retry later.");
         }
         else if (exception is BadHttpRequestException badRequest)
         {

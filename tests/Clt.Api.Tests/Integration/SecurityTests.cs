@@ -1,13 +1,13 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Clt.Api.Tests.Support;
 
 namespace Clt.Api.Tests.Integration;
 
-public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
+public class SecurityTests : IClassFixture<ApiFactory>
 {
     private readonly HttpClient _client;
 
-    public SecurityTests(WebApplicationFactory<Program> factory) => _client = factory.CreateClient();
+    public SecurityTests(ApiFactory factory) => _client = factory.CreateClient();
 
     [Theory]
     [InlineData(null)]
