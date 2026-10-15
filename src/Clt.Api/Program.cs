@@ -3,9 +3,20 @@ using Clt.Api.Api.Middleware;
 using FluentValidation;
 using Microsoft.OpenApi;
 using Clt.Api.Infrastructure.Persistence;
+using Clt.Api.Api.Endpoints;
+using Clt.Api.Application.Users.Commands;
+using Clt.Api.Application.Users.Queries;
+using Clt.Api.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPersistence(builder.Configuration, builder.Environment.ContentRootPath);
+builder.Services.AddScoped<CreateUserHandler>();
+builder.Services.AddScoped<UpdateUserHandler>();
+builder.Services.AddScoped<DeleteUserHandler>();
+builder.Services.AddScoped<GetUserHandler>();
+builder.Services.AddScoped<ListUsersHandler>();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -36,6 +47,7 @@ app.UseStatusCodePages(async context =>
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseMiddleware<ApiKeyMiddleware>();
+app.MapUserEndpoints();
 app.Run();
 
 public partial class Program;
