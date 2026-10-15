@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Clt.Api.Application.Users.Commands;
 
-public sealed record UpdateUserCommand(string Name, string Email, bool IsActive);
+public sealed record UpdateUserCommand(string Name, string Email, bool? IsActive = null);
 
 public sealed class UpdateUserValidator : AbstractValidator<UpdateUserCommand>
 {
@@ -28,7 +28,7 @@ public sealed class UpdateUserHandler(IDbContextFactory<AppDbContext> factory,
             ?? throw ApiException.NotFound("User");
         user.Name = command.Name.Trim();
         user.Email = command.Email.Trim().ToLowerInvariant();
-        user.IsActive = command.IsActive;
+        if (command.IsActive.HasValue) user.IsActive = command.IsActive.Value;
         await DatabaseErrors.SaveAsync(db, "A user with this email already exists.", ct);
         return UserResponse.From(user);
     }

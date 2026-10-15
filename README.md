@@ -4,7 +4,7 @@ API REST de usuarios, direcciones y conversión de divisas. Implementa los 13 en
 
 ## Stack y requisitos
 
-- SDK **.NET 10.0.402**, fijado en `global.json` (acepta parches posteriores de la misma banda).
+- SDK **.NET 10.0** estable, de cualquier banda 1xx/2xx/3xx/4xx o posterior de 10.0. `global.json` usa `10.0.100` como mínimo y `latestFeature`; los proyectos mantienen `net10.0`.
 - ASP.NET Core Minimal API, EF Core 10, SQLite, FluentValidation, Swagger/OpenAPI y xUnit.
 - Git y acceso a NuGet para la primera restauración. No requiere instalar un servidor de base de datos.
 
@@ -126,17 +126,16 @@ dotnet build
 dotnet test
 ```
 
-**50 tests**, con SQLite real temporal e independiente por instancia de API. Cubren seguridad de los 13 endpoints, CRUD, unicidad, cascada, seed/migración, hashing, validators, conversión y bulk parcial. Dos pruebas con una barrera en interceptores de EF comprueban solapamiento y diferentes `ContextId`; no se basan en medir velocidad.
+**54 tests**, con SQLite real temporal e independiente por instancia de API. Cubren seguridad de los 13 endpoints, CRUD, unicidad, cascada, seed/migración, hashing, validators, conversión y bulk parcial. Incluyen la conservación de `isActive` cuando se omite y su actualización explícita. Dos pruebas con una barrera en interceptores de EF comprueban solapamiento y diferentes `ContextId`; no se basan en medir velocidad.
 
-Los warnings de compilación se tratan como errores. La matriz completa contra el enunciado y la evidencia final se encuentran en [AUDIT.md](AUDIT.md).
+Los warnings de compilación se tratan como errores.
 
 ## Decisiones y alcance
 
-- Password opcional al crear, incluido bulk; si está presente no puede estar vacío. Solo se persiste `PasswordHash` generado con `PasswordHasher<User>` (PBKDF2 con salt); ningún DTO lo devuelve. PUT modifica los tres campos solicitados y conserva el hash.
+- Password opcional al crear, incluido bulk; si está presente no puede estar vacío. Solo se persiste `PasswordHash` generado con `PasswordHasher<User>` (PBKDF2 con salt); ningún DTO lo devuelve. PUT requiere nombre/email y conserva el hash. Si se omite `isActive`, conserva su valor actual; si se envía `true` o `false`, lo actualiza explícitamente.
 - Email recortado y normalizado a minúsculas; códigos recortados y en mayúsculas. Los índices únicos SQLite usan `NOCASE`; son la garantía ante carreras de duplicados.
 - Borrado físico de usuarios con cascada de direcciones. Usuario inexistente al crear/listar direcciones devuelve `404`; usuario sin direcciones devuelve `[]`.
 - Importes y tasas usan `decimal`, sin conversión a `double`. Fórmula del PDF en aplicación, sin redondeo de negocio adicional; overflow devuelve `400`.
 - Currency implementa listar, crear y convertir: las operaciones enumeradas en el PDF.
-- Implementado todo el alcance funcional solicitado. Repositorio y commits locales; no se creó remoto ni se hizo push.
 
 Posibles mejoras: paginación, límites de lote configurables, políticas de contraseña según producto, gestión/rotación de API Keys, observabilidad y una DB con múltiples escritores para cargas mayores.

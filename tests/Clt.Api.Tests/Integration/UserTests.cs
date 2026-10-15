@@ -12,6 +12,64 @@ namespace Clt.Api.Tests.Integration;
 
 public class UserTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Put_without_isActive_preserves_current_state(bool initiallyActive)
+    {
+        using var app = new ApiFactory();
+        using var client = app.CreateAuthorizedClient();
+        var created = await client.PostAsJsonAsync("/users", new { name = "Juan", email = "juan@test.com" });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var user = (await created.Content.ReadFromJsonAsync<UserResponse>())!;
+        Assert.True(user.IsActive);
+        if (!initiallyActive)
+        {
+            var deactivated = await client.PutAsJsonAsync($"/users/{user.Id}",
+                new { name = user.Name, email = user.Email, isActive = false });
+            Assert.Equal(HttpStatusCode.OK, deactivated.StatusCode);
+            Assert.False((await deactivated.Content.ReadFromJsonAsync<UserResponse>())!.IsActive);
+        }
+
+        var response = await client.PutAsJsonAsync($"/users/{user.Id}",
+            new { name = "Juan Updated", email = "updated@test.com" });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = (await response.Content.ReadFromJsonAsync<UserResponse>())!;
+        Assert.Equal(initiallyActive, updated.IsActive);
+        Assert.Equal("Juan Updated", updated.Name);
+        Assert.Equal("updated@test.com", updated.Email);
+        Assert.Equal(updated, await client.GetFromJsonAsync<UserResponse>($"/users/{user.Id}"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Put_with_explicit_isActive_changes_state(bool isActive)
+    {
+        using var app = new ApiFactory();
+        using var client = app.CreateAuthorizedClient();
+        var created = await client.PostAsJsonAsync("/users", new { name = "Juan", email = "juan@test.com" });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var user = (await created.Content.ReadFromJsonAsync<UserResponse>())!;
+        Assert.True(user.IsActive);
+        if (isActive)
+        {
+            var deactivated = await client.PutAsJsonAsync($"/users/{user.Id}",
+                new { name = user.Name, email = user.Email, isActive = false });
+            Assert.Equal(HttpStatusCode.OK, deactivated.StatusCode);
+            Assert.False((await deactivated.Content.ReadFromJsonAsync<UserResponse>())!.IsActive);
+        }
+
+        var response = await client.PutAsJsonAsync($"/users/{user.Id}",
+            new { name = "Juan Updated", email = "updated@test.com", isActive });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = (await response.Content.ReadFromJsonAsync<UserResponse>())!;
+        Assert.Equal(isActive, updated.IsActive);
+        Assert.Equal(updated, await client.GetFromJsonAsync<UserResponse>($"/users/{user.Id}"));
+    }
+
     [Fact]
     public async Task User_crud_filter_and_default_active_work_without_password()
     {
