@@ -9,6 +9,9 @@ public static class UserEndpoints
     public static void MapUserEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/users").WithTags("Users");
+        group.MapPost("/bulk", async (BulkCreateUsersCommand request, BulkCreateUsersHandler handler,
+            CancellationToken ct) => Results.Ok(await handler.HandleAsync(request, ct)))
+            .Produces<BulkUsersResponse>().ProducesValidationProblem();
         group.MapPost("", async (CreateUserCommand request, CreateUserHandler handler, CancellationToken ct) =>
         {
             var user = await handler.HandleAsync(request, ct);

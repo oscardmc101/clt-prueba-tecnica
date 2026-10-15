@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Clt.Api\Clt.Api.csproj" />
+    <None Include="../../sample-data/bulk_users_test.json" Link="sample-data/bulk_users_test.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

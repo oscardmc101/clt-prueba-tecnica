@@ -17,6 +17,7 @@ using Clt.Api.Application.CurrencyConversion;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPersistence(builder.Configuration, builder.Environment.ContentRootPath);
 builder.Services.AddScoped<CreateUserHandler>();
+builder.Services.AddScoped<BulkCreateUsersHandler>();
 builder.Services.AddScoped<UpdateUserHandler>();
 builder.Services.AddScoped<DeleteUserHandler>();
 builder.Services.AddScoped<GetUserHandler>();
